@@ -23,10 +23,29 @@ public:
 		data_ = new Point<T>*[capacity_];
 	}
 
-	Polyline(int start, int end) {
-		size_ = end - start + 1;
+	Polyline(T x, T y) : size_(0) {
+		capacity_ = kGrowth;
+		data_ = new Point<T>*[capacity_]();
+		data_[0] = new Point<T>(x, y);
+		size_++;
+	}
+
+	Polyline(int start, int end, int step) : size_(0) {
+		int coord = start;
+
+		while (coord <= end) {
+			coord += step;
+			size_++;
+		}
+
 		capacity_ = size_ + kGrowth;
-		data_ = new Point<T>*[capacity_];
+		data_ = new Point<T>*[capacity_]();
+
+		coord = start;
+		for (int i = 0; i < size_; ++i) {
+			data_[i] = new Point<T>(coord, coord);
+			coord += step;
+		}
 	}
 
 	Polyline(const Polyline<T>& other) : Polyline(other.capacity_) {
@@ -55,6 +74,31 @@ public:
 		return capacity_;
 	}
 
+	Polyline<T>& operator+=(const Point<T>& point) {
+		if (size_ >= capacity_) {
+			capacity_ += kGrowth;
+			Point<T>** temp = new Point<T>*[capacity_]();
+
+			for (int i = 0; i < size_; ++i) {
+				temp[i] = data_[i];
+			}
+
+			delete[] data_;
+			data_ = temp;
+		}
+
+		data_[size_] = new Point<T>(point);
+		size_++;
+
+		return *this;
+	}
+
+	Polyline<T> operator+(const Point<T>& point) {
+		Polyline<T> add_res(*this);
+		add_res += point;
+		return add_res;
+	}
+
 	const Point<T>& operator[](int index) const {
 		if ((index < 0) && (index >= size_)) {
 			throw std::out_of_range("Index out of range");
@@ -69,12 +113,80 @@ public:
 		return *data_[index];
 	}
 
+	Polyline<T>& operator+=(const Polyline<T>& other) {
+		if (size_ + other.size_ > capacity_) {
+			capacity_ = size_ + other.size_ + kGrowth;
+			Point<T>** temp = new Point<T>*[capacity_]();
+
+			for (int i = 0; i < size_; ++i) {
+				temp[i] = data_[i];
+			}
+
+			delete[] data_;
+			data_ = temp;
+		}
+
+		for (int i = 0; i < other.size_; ++i) {
+			*this += *other.data_[i];
+		}
+
+		return *this;
+	}
+
+	Polyline<T> operator+(const Polyline<T>& other) {
+		Polyline<T> add_res(*this);
+		add_res += other;
+		return add_res;
+	}
+
 	double Length() {
 		double length = 0;
 		for (int i = 0; i < size_ - 1; ++i) {
 			length += Distance(*data_[i], *data_[i + 1]);
 		}
 		return length;
+	}
+
+	void PushBack(const Point<T>& point) {
+		if (size_ >= capacity_) {
+			capacity_ += kGrowth;
+			Point<T>** temp = new Point<T>*[capacity_]();
+
+			for (int i = 0; i < size_; ++i) {
+				temp[i] = data_[i];
+			}
+
+			delete[] data_;
+			data_ = temp;
+		}
+
+		data_[size_] = new Point<T>(point);
+		size_++;
+	}
+
+	void PushFront(const Point<T>& point) {
+		if (size_ >= capacity_) {
+			capacity_ += kGrowth;
+			Point<T>** temp = new Point<T>*[capacity_]();
+
+			for (int i = 0; i < size_; ++i) {
+				temp[i] = data_[i];
+			}
+
+			delete[] data_;
+			data_ = temp;
+		}
+
+		Point<T>** temp = new Point<T>*[capacity_]();
+
+		for (int i = 0; i < size_; ++i) {
+			temp[i + 1] = data_[i];
+		}
+
+		temp[0] = new Point<T>(point);
+		delete[] data_;
+		data_ = temp;
+		++size_;
 	}
 
 	~Polyline() {
