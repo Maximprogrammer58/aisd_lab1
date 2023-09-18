@@ -95,4 +95,9 @@ bool operator==(const Point<int>& point1, const Point<int>& point2) {
 	return false;
 }
 
+template<typename T>
+bool operator!=(const Point<T>& point1, const Point<T>& point2) {
+	return (!(point1 == point2));
+}
+
 #endif

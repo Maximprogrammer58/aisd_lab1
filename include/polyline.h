@@ -228,4 +228,9 @@ bool operator==(const Polyline<T>& line1, const Polyline<T>& line2) {
 	return (be_equal || be_equal_reverse);
 }
 
+template<typename T>
+bool operator!=(const Polyline<T>& line1, const Polyline<T>& line2) {
+	return (!(line1 == line2));
+}
+
 #endif
