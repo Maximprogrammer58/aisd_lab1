@@ -18,4 +18,4 @@ if(MSVC)
 endif()
 
 # Объявляем исполняемый файл
-add_executable(main "src/main.cc")
+add_executable(main "src/main.cc" "include/random.h")

@@ -2,8 +2,10 @@
 #define TESTLABC_INCLUDE_POLYLINE_H
 
 #include <utility>
+#include <stdexcept>
 
 #include "point.h"
+#include "random.h"
 
 const int kGrowth = 5;
 
@@ -12,10 +14,6 @@ class Polyline
 {
 	Point<T>** data_;
 	int size_, capacity_;
-
-	double Distance(const Point<T>& pt1, const Point<T>& pt2) {
-		return sqrt(pow(pt2.x - pt1.x, 2) + pow(pt2.y - pt1.y, 2));
-	}
 
 public:
 
@@ -30,21 +28,11 @@ public:
 		size_++;
 	}
 
-	Polyline(int start, int end, int step) : size_(0) {
-		int coord = start;
-
-		while (coord <= end) {
-			coord += step;
-			size_++;
-		}
-
+	Polyline(int size, T x1, T x2, T y1, T y2) : size_(size) {
 		capacity_ = size_ + kGrowth;
 		data_ = new Point<T>*[capacity_]();
-
-		coord = start;
 		for (int i = 0; i < size_; ++i) {
-			data_[i] = new Point<T>(coord, coord);
-			coord += step;
+			data_[i] = new Point<T>(Random(x1, x2), Random(y1, y2));
 		}
 	}
 
@@ -142,7 +130,7 @@ public:
 	double Length() {
 		double length = 0;
 		for (int i = 0; i < size_ - 1; ++i) {
-			length += Distance(*data_[i], *data_[i + 1]);
+			length += (*data_[i]).Distance(*data_[i + 1]);
 		}
 		return length;
 	}
@@ -215,6 +203,29 @@ std::ostream& operator<<(std::ostream& stream, const Polyline<T>& line) {
 	}
 	stream << " ]";
 	return stream;
+}
+
+template<typename T>
+bool operator==(const Polyline<T>& line1, const Polyline<T>& line2) {
+	if (line1.size() != line2.size()) {
+		throw std::runtime_error("Different number of vertices");
+	}
+
+	bool be_equal = true;
+	for (int i = 0; i < line1.size(); ++i) {
+		if (line1[i] != line2[i]) {
+			be_equal = false;
+		}
+	}
+
+	bool be_equal_reverse = true;
+	for (int i = 0; i < line1.size(); ++i) {
+		if (line1[i] != line2[line1.size() - i - 1]) {
+			be_equal_reverse = false;
+		}
+	}
+
+	return (be_equal || be_equal_reverse);
 }
 
 #endif
