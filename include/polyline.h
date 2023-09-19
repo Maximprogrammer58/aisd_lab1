@@ -17,178 +17,232 @@ class Polyline
 
 public:
 
-	Polyline(int capacity) : capacity_(capacity), size_(0) {
-		data_ = new Point<T>*[capacity_];
+	Polyline(int capacity);
+
+	Polyline(T x, T y);
+
+	Polyline(int size, T x1, T x2, T y1, T y2);
+
+	Polyline(const Polyline<T>& other);
+
+	void swap(Polyline<T>& other) noexcept;
+
+	Polyline<T>& operator=(Polyline<T> other);
+
+	int size() const;
+
+	int capacity() const;
+
+	Polyline<T>& operator+=(const Point<T>& point);
+
+	Polyline<T> operator+(const Point<T>& point);
+
+	const Point<T>& operator[](int index) const;
+
+	Point<T>& operator[](int index);
+
+	Polyline<T>& operator+=(const Polyline<T>& other);
+
+	Polyline<T> operator+(const Polyline<T>& other);
+
+	double Length();
+
+	void PushBack(const Point<T>& point);
+
+	void PushFront(const Point<T>& point);
+
+	~Polyline();
+};
+
+template<typename T>
+Polyline<T>::Polyline(int capacity) : capacity_(capacity), size_(0) {
+	data_ = new Point<T>*[capacity_];
+}
+
+template<typename T>
+Polyline<T>::Polyline(T x, T y) : size_(0) {
+	capacity_ = kGrowth;
+	data_ = new Point<T>*[capacity_]();
+	data_[0] = new Point<T>(x, y);
+	size_++;
+}
+
+template<typename T>
+Polyline<T>::Polyline(int size, T x1, T x2, T y1, T y2) : size_(size) {
+	capacity_ = size_ + kGrowth;
+	data_ = new Point<T>*[capacity_]();
+	for (int i = 0; i < size_; ++i) {
+		data_[i] = new Point<T>(Random(x1, x2), Random(y1, y2));
 	}
+}
 
-	Polyline(T x, T y) : size_(0) {
-		capacity_ = kGrowth;
-		data_ = new Point<T>*[capacity_]();
-		data_[0] = new Point<T>(x, y);
-		size_++;
+template<typename T>
+Polyline<T>::Polyline(const Polyline<T>& other) : Polyline(other.capacity_) {
+	size_ = other.size_;
+	for (int i = 0; i < size_; ++i) {
+		data_[i] = new Point<T>(*other.data_[i]);
 	}
+}
 
-	Polyline(int size, T x1, T x2, T y1, T y2) : size_(size) {
-		capacity_ = size_ + kGrowth;
-		data_ = new Point<T>*[capacity_]();
-		for (int i = 0; i < size_; ++i) {
-			data_[i] = new Point<T>(Random(x1, x2), Random(y1, y2));
-		}
-	}
+template<typename T>
+void Polyline<T>::swap(Polyline<T>& other) noexcept {
+	std::swap(data_, other.data_);
+	std::swap(size_, other.size_);
+	std::swap(capacity_, other.capacity_);
+}
 
-	Polyline(const Polyline<T>& other) : Polyline(other.capacity_) {
-		size_ = other.size_;
-		for (int i = 0; i < size_; ++i) {
-			data_[i] = new Point<T>(*other.data_[i]);
-		}
-	}
+template<typename T>
+Polyline<T>& Polyline<T>::operator=(Polyline<T> other) {
+	swap(other);
+	return *this;
+}
 
-	void swap(Polyline<T>& other) noexcept {
-		std::swap(data_, other.data_);
-		std::swap(size_, other.size_);
-		std::swap(capacity_, other.capacity_);
-	}
+template<typename T>
+int Polyline<T>::size() const {
+	return size_;
+}
 
-	Polyline<T>& operator=(Polyline<T> other) {
-		swap(other);
-		return *this;
-	}
+template<typename T>
+int Polyline<T>::capacity() const {
+	return capacity_;
+}
 
-	int size() const {
-		return size_;
-	}
-
-	int capacity() const {
-		return capacity_;
-	}
-
-	Polyline<T>& operator+=(const Point<T>& point) {
-		if (size_ >= capacity_) {
-			capacity_ += kGrowth;
-			Point<T>** temp = new Point<T>*[capacity_]();
-
-			for (int i = 0; i < size_; ++i) {
-				temp[i] = data_[i];
-			}
-
-			delete[] data_;
-			data_ = temp;
-		}
-
-		data_[size_] = new Point<T>(point);
-		size_++;
-
-		return *this;
-	}
-
-	Polyline<T> operator+(const Point<T>& point) {
-		Polyline<T> add_res(*this);
-		add_res += point;
-		return add_res;
-	}
-
-	const Point<T>& operator[](int index) const {
-		if ((index < 0) && (index >= size_)) {
-			throw std::out_of_range("Index out of range");
-		}
-		return *data_[index];
-	}
-
-	Point<T>& operator[](int index) {
-		if ((index < 0) && (index >= size_)) {
-			throw std::out_of_range("Index out of range");
-		}
-		return *data_[index];
-	}
-
-	Polyline<T>& operator+=(const Polyline<T>& other) {
-		if (size_ + other.size_ > capacity_) {
-			capacity_ = size_ + other.size_ + kGrowth;
-			Point<T>** temp = new Point<T>*[capacity_]();
-
-			for (int i = 0; i < size_; ++i) {
-				temp[i] = data_[i];
-			}
-
-			delete[] data_;
-			data_ = temp;
-		}
-
-		for (int i = 0; i < other.size_; ++i) {
-			*this += *other.data_[i];
-		}
-
-		return *this;
-	}
-
-	Polyline<T> operator+(const Polyline<T>& other) {
-		Polyline<T> add_res(*this);
-		add_res += other;
-		return add_res;
-	}
-
-	double Length() {
-		double length = 0;
-		for (int i = 0; i < size_ - 1; ++i) {
-			length += (*data_[i]).Distance(*data_[i + 1]);
-		}
-		return length;
-	}
-
-	void PushBack(const Point<T>& point) {
-		if (size_ >= capacity_) {
-			capacity_ += kGrowth;
-			Point<T>** temp = new Point<T>*[capacity_]();
-
-			for (int i = 0; i < size_; ++i) {
-				temp[i] = data_[i];
-			}
-
-			delete[] data_;
-			data_ = temp;
-		}
-
-		data_[size_] = new Point<T>(point);
-		size_++;
-	}
-
-	void PushFront(const Point<T>& point) {
-		if (size_ >= capacity_) {
-			capacity_ += kGrowth;
-			Point<T>** temp = new Point<T>*[capacity_]();
-
-			for (int i = 0; i < size_; ++i) {
-				temp[i] = data_[i];
-			}
-
-			delete[] data_;
-			data_ = temp;
-		}
-
+template<typename T>
+Polyline<T>& Polyline<T>::operator+=(const Point<T>& point) {
+	if (size_ >= capacity_) {
+		capacity_ += kGrowth;
 		Point<T>** temp = new Point<T>*[capacity_]();
 
 		for (int i = 0; i < size_; ++i) {
-			temp[i + 1] = data_[i];
+			temp[i] = data_[i];
 		}
 
-		temp[0] = new Point<T>(point);
 		delete[] data_;
 		data_ = temp;
-		++size_;
 	}
 
-	~Polyline() {
-		if (data_ != nullptr) {
-			for (int i = 0; i < size_; ++i) {
-				delete data_[i];
-			}
-			size_ = 0;
-			capacity_ = 0;
-			delete[] data_;
-			data_ = nullptr;
-		}
+	data_[size_] = new Point<T>(point);
+	size_++;
+
+	return *this;
+}
+
+template<typename T>
+Polyline<T> Polyline<T>::operator+(const Point<T>& point) {
+	Polyline<T> add_res(*this);
+	add_res += point;
+	return add_res;
+}
+
+template<typename T>
+const Point<T>& Polyline<T>::operator[](int index) const {
+	if ((index < 0) && (index >= size_)) {
+		throw std::out_of_range("Index out of range");
 	}
-};
+	return *data_[index];
+}
+
+template<typename T>
+Point<T>& Polyline<T>::operator[](int index) {
+	if ((index < 0) && (index >= size_)) {
+		throw std::out_of_range("Index out of range");
+	}
+	return *data_[index];
+}
+
+template<typename T>
+Polyline<T>& Polyline<T>::operator+=(const Polyline<T>& other) {
+	if (size_ + other.size_ > capacity_) {
+		capacity_ = size_ + other.size_ + kGrowth;
+		Point<T>** temp = new Point<T>*[capacity_]();
+
+		for (int i = 0; i < size_; ++i) {
+			temp[i] = data_[i];
+		}
+
+		delete[] data_;
+		data_ = temp;
+	}
+
+	for (int i = 0; i < other.size_; ++i) {
+		*this += *other.data_[i];
+	}
+
+	return *this;
+}
+
+template<typename T>
+Polyline<T> Polyline<T>::operator+(const Polyline<T>& other) {
+	Polyline<T> add_res(*this);
+	add_res += other;
+	return add_res;
+}
+
+template<typename T>
+double Polyline<T>::Length() {
+	double length = 0;
+	for (int i = 0; i < size_ - 1; ++i) {
+		length += (*data_[i]).Distance(*data_[i + 1]);
+	}
+	return length;
+}
+
+template<typename T>
+void Polyline<T>::PushBack(const Point<T>& point) {
+	if (size_ >= capacity_) {
+		capacity_ += kGrowth;
+		Point<T>** temp = new Point<T>*[capacity_]();
+
+		for (int i = 0; i < size_; ++i) {
+			temp[i] = data_[i];
+		}
+
+		delete[] data_;
+		data_ = temp;
+	}
+
+	data_[size_] = new Point<T>(point);
+	size_++;
+}
+
+template<typename T>
+void Polyline<T>::PushFront(const Point<T>& point) {
+	if (size_ >= capacity_) {
+		capacity_ += kGrowth;
+		Point<T>** temp = new Point<T>*[capacity_]();
+
+		for (int i = 0; i < size_; ++i) {
+			temp[i] = data_[i];
+		}
+
+		delete[] data_;
+		data_ = temp;
+	}
+
+	Point<T>** temp = new Point<T>*[capacity_]();
+
+	for (int i = 0; i < size_; ++i) {
+		temp[i + 1] = data_[i];
+	}
+
+	temp[0] = new Point<T>(point);
+	delete[] data_;
+	data_ = temp;
+	++size_;
+}
+
+template<typename T>
+Polyline<T>::~Polyline() {
+	if (data_ != nullptr) {
+		for (int i = 0; i < size_; ++i) {
+			delete data_[i];
+		}
+		size_ = 0;
+		capacity_ = 0;
+		delete[] data_;
+		data_ = nullptr;
+	}
+}
 
 template<typename T>
 std::ostream& operator<<(std::ostream& stream, const Polyline<T>& line) {
