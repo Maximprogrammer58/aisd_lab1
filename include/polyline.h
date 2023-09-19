@@ -17,7 +17,7 @@ class Polyline
 
 public:
 
-	Polyline(int capacity);
+	explicit Polyline(int capacity);
 
 	Polyline(T x, T y);
 
